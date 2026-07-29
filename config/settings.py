@@ -26,6 +26,7 @@ INSTALLED_APPS = [
 
     "rest_framework",
     'rest_framework_simplejwt',
+    'django_celery_beat',
     "drf_spectacular",
 
     "users",
@@ -116,4 +117,25 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+
+## CELERY
+# URL-адрес брокера сообщений
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+# URL-адрес брокера результатов, также Redis
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
+# Часовой пояс для работы Celery
+CELERY_TIMEZONE = TIME_ZONE
+# Флаг отслеживания выполнения задач
+CELERY_TASK_TRACK_STARTED = True
+# Максимальное время на выполнение задачи
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+CELERY_BEAT_SCHEDULE = {
+    'send_habit_reminder_notification': {
+        'task': 'habits.tasks.send_habit_reminder_notification',  # Путь к задаче
+        'schedule': timedelta(minutes=1),  # Расписание выполнения задачи
+    },
 }

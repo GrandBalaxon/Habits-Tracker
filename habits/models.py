@@ -8,7 +8,7 @@ class Habit(models.Model):
     """
     Модель привычки. Поддерживает полезные и приятные привычки, связь между ними, периодичность выполнения и публичный доступ.
     """
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name="Пользователь")
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, verbose_name="Пользователь", related_name="habits")
     place = models.CharField(max_length=100, null=True, blank=True, verbose_name="Место")
 
     time = models.TimeField(verbose_name="Время")

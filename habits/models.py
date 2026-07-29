@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from users.models import CustomUser
@@ -33,3 +34,22 @@ class Habit(models.Model):
 
     def __str__(self):
         return f"Я буду {self.action} в {self.time} в {self.place}"
+
+    def clean(self):
+        if self.is_pleasant and self.reward:
+            raise ValidationError(
+                "У приятной привычки не может быть вознаграждения"
+            )
+        if self.is_pleasant and self.related_habit:
+            raise ValidationError(
+                "У приятной привычки не может быть связанной привычки"
+            )
+        if self.reward and self.related_habit:
+            raise ValidationError(
+                "Нельзя одновременно указать вознаграждение и связанную привычку"
+            )
+        if self.duration > 120:
+            raise ValidationError(
+                "Время выполнения должно быть не больше 120 секунд"
+            )
+        super().clean()

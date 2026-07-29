@@ -1,7 +1,9 @@
 from drf_spectacular.utils import extend_schema
-from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView, ListAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
+from habits.models import Habit
+from habits.serializers import HabitSerializer
 from users.models import CustomUser
 from users.serializers import CustomUserSerializer
 
@@ -50,3 +52,15 @@ class UserDestroyApiView(DestroyAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+@extend_schema(
+    tags=['Привычки'],
+    summary='Список привычек пользователя',
+)
+class UserHabitsListApiView(ListAPIView):
+    serializer_class = HabitSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Habit.objects.filter(user=self.request.user)

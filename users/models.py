@@ -29,6 +29,9 @@ class CustomUser(AbstractUser):
     """Кастомная модель пользователя для проекта."""
     email = models.EmailField(unique=True)
     username = models.CharField(max_length=50, unique=True, null=True, blank=True, default=None)
+    telegram_chat_id = models.CharField(
+        max_length=50, null=True, blank=True, default=None, verbose_name="Telegram Chat ID"
+    )
 
     objects = CustomUserManager()
 

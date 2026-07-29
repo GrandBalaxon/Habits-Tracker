@@ -4,6 +4,7 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView,
 from rest_framework.permissions import IsAuthenticated
 
 from habits.models import Habit
+from habits.pagination import FiveElementsPagination
 from habits.serializers import HabitSerializer, PublicHabitSerializer
 
 
@@ -14,6 +15,7 @@ from habits.serializers import HabitSerializer, PublicHabitSerializer
 )
 class HabitsListApiView(ListAPIView):
     serializer_class = HabitSerializer
+    pagination_class = FiveElementsPagination
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):

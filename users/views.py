@@ -3,6 +3,7 @@ from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIVie
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from habits.models import Habit
+from habits.pagination import FiveElementsPagination
 from habits.serializers import HabitSerializer
 from users.models import CustomUser
 from users.serializers import CustomUserSerializer
@@ -60,6 +61,7 @@ class UserDestroyApiView(DestroyAPIView):
 )
 class UserHabitsListApiView(ListAPIView):
     serializer_class = HabitSerializer
+    pagination_class = FiveElementsPagination
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):

@@ -3,7 +3,30 @@ from rest_framework import serializers
 from habits.models import Habit
 
 
+class PublicHabitSerializer(serializers.ModelSerializer):
+    """Сериализатор для публичных привычек."""
+    related_habit = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Habit
+        fields = [
+            'id', 'action', 'place', 'time', 'duration',
+            'periodicity', 'related_habit', 'reward', 'is_pleasant'
+        ]
+
+    def get_related_habit(self, obj):
+        if obj.related_habit:
+            return {
+                'id': obj.related_habit.id,
+                'action': obj.related_habit.action,
+                'place': obj.related_habit.place,
+                'time': obj.related_habit.time,
+            }
+        return None
+
+
 class HabitSerializer(serializers.ModelSerializer):
+    """Сериализатор для собственных привычек."""
     class Meta:
         model = Habit
         fields = '__all__'
@@ -48,6 +71,14 @@ class HabitSerializer(serializers.ModelSerializer):
             if data.get('related_habit'):
                 raise serializers.ValidationError(
                     "У приятной привычки не может быть связанной привычки"
+                )
+
+        # Если привычка публичная и имеет связанную привычку, связанная привычка тоже должна быть публичной
+        if data.get('is_public') and data.get('related_habit'):
+            if not data['related_habit'].is_public:
+                raise serializers.ValidationError(
+                    "Нельзя сделать привычку публичной, если связанная привычка приватная. "
+                    "Сначала сделайте связанную привычку публичной."
                 )
 
         return data

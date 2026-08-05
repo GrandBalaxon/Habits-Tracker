@@ -27,6 +27,7 @@ class Habit(models.Model):
     is_pleasant = models.BooleanField(verbose_name="Признак приятной привычки")
     reward = models.CharField(verbose_name="Вознаграждение", max_length=255, null=True, blank=True)
     is_public = models.BooleanField(default=False, verbose_name="Видна другим пользователям")
+    task_id = models.CharField(max_length=255, null=True, blank=True, verbose_name="ID задачи Celery")
 
     class Meta:
         verbose_name = "Привычка"

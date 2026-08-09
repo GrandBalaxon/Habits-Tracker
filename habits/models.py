@@ -27,8 +27,9 @@ class Habit(models.Model):
     is_pleasant = models.BooleanField(verbose_name="Признак приятной привычки")
     reward = models.CharField(verbose_name="Вознаграждение", max_length=255, null=True, blank=True)
     is_public = models.BooleanField(default=False, verbose_name="Видна другим пользователям")
+    notifications_on = models.BooleanField(default=False, verbose_name="Уведомления включены")
     task_id = models.CharField(max_length=255, null=True, blank=True, verbose_name="ID задачи Celery")
-    next_notification = models.DateField(null=True, blank=True, verbose_name="Время следующего оповещения")
+    next_notification = models.DateTimeField(null=True, blank=True, verbose_name="Время следующего оповещения")
 
     class Meta:
         verbose_name = "Привычка"
@@ -59,7 +60,8 @@ class Habit(models.Model):
     def save(self, *args, **kwargs):
         schedule_needed = False
         if self.pk is None:
-            schedule_needed = True  # Новая привычка
+            # Новая привычка
+            schedule_needed = True
         else:
             try:
                 old = Habit.objects.get(pk=self.pk)
@@ -67,11 +69,16 @@ class Habit(models.Model):
                 schedule_needed = True
             else:
                 # Проверяем, изменились ли критичные поля
-                if (old.time != self.time) or (old.periodicity != self.periodicity):
+                if (old.time != self.time) or (old.periodicity != self.periodicity) or (
+                        old.notifications_on != self.notifications_on):
                     schedule_needed = True
-                # Если telegram_chat_id мог измениться у пользователя – тоже можно добавить,
-                # но обычно он меняется редко, а если и меняется, задача всё равно не отправится.
+
         super().save(*args, **kwargs)
-        if schedule_needed:
+
+        if schedule_needed and self.notifications_on:
             from .services import schedule_habit_reminder
-            schedule_habit_reminder(self.id)
+            schedule_habit_reminder(self.id, force_revoke=True)
+        elif not self.notifications_on and self.task_id:
+            from celery import current_app
+            current_app.control.revoke(self.task_id)
+            Habit.objects.filter(pk=self.pk).update(task_id=None, next_notification=None)

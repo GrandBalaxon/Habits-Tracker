@@ -92,8 +92,11 @@ def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
         return
 
     chat_id = habit.user.telegram_chat_id
-    if not chat_id:
-        revoke_and_clear_habit(habit)
+    # Если уведомления к задаче выключены или нет chat_id — очищаем задачу
+    if not habit.notifications_on or not chat_id:
+        if habit.task_id:
+            print(f'Отзываем задачу {habit.task_id}')
+            revoke_and_clear_habit(habit)
         return
 
     now = timezone.now()

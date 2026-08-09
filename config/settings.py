@@ -30,7 +30,7 @@ INSTALLED_APPS = [
     "drf_spectacular",
 
     "users",
-    "habits"
+    "habits.apps.HabitsConfig",
 ]
 
 MIDDLEWARE = [
@@ -136,9 +136,6 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 CELERY_BEAT_SCHEDULE = {
     'set_up_all_reminders': {
         'task': 'habits.tasks.set_up_all_reminders',  # Путь к задаче
-        'schedule': timedelta(hours=1),  # Расписание выполнения задачи
-        'options': {
-            'run_immediately': True,    # Выполнить немедленно при старте beat
-        }
+        'schedule': timedelta(minutes=10),  # Расписание выполнения задачи
     },
 }

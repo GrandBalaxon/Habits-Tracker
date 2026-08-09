@@ -44,7 +44,7 @@ def make_telegram_habit_message(habit: "Habit") -> str:
     return message
 
 
-def send_telegram_message(chat_id, message):
+def send_telegram_message(chat_id: str, message: str):
     """Отправляет сообщение в чат-бот Telegram."""
     params = {
         'chat_id': chat_id,
@@ -56,7 +56,8 @@ def send_telegram_message(chat_id, message):
 
 def get_today_send_time(habit: "Habit", now: datetime) -> datetime:
     habit_time = habit.time
-    return now.replace(
+    local_now = timezone.localtime(now)
+    return local_now.replace(
         hour=habit_time.hour,
         minute=habit_time.minute,
         second=0,
@@ -64,8 +65,25 @@ def get_today_send_time(habit: "Habit", now: datetime) -> datetime:
     )
 
 
-def schedule_habit_reminder(habit_id: str, revoke_old_task=False) -> None:
-    """Создаёт или обновляет отложенную задачу для привычки."""
+def revoke_and_clear_habit(habit: "Habit") -> None:
+    """
+    Отзывает запланированную задачу Celery,
+    очищает поля task_id и next_notification и сохраняет изменения.
+    """
+    if habit.task_id:
+        current_app.control.revoke(habit.task_id)
+    habit.task_id = None
+    habit.next_notification = None
+    habit.save(update_fields=['task_id', 'next_notification'])
+
+
+def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
+    """
+    Создаёт отложенную задачу для привычки.
+
+    :arg habit_id: ID привычки
+    :arg force_revoke: Сигнал для форсированного удаления старой задачи, срабатывает при ручном обновлении данных.
+    """
     from habits.tasks import send_habit_reminder
 
     try:
@@ -73,14 +91,28 @@ def schedule_habit_reminder(habit_id: str, revoke_old_task=False) -> None:
     except Habit.DoesNotExist:
         return
 
-    # Удаление старой не актуальной задачи
-    if revoke_old_task:
-        current_app.control.revoke(habit.task_id)
+    chat_id = habit.user.telegram_chat_id
+    if not chat_id:
+        revoke_and_clear_habit(habit)
+        return
 
     now = timezone.now()
-    send_time = get_today_send_time(habit, now)
+    local_now = timezone.localtime(now)
 
-    if send_time <= now:
+    if not force_revoke:
+        # Если уже есть активная задача и её время в будущем – завершаем операцию
+        if habit.next_notification and habit.next_notification > local_now:
+            print(f'Привычка {habit.pk} уже имеет актуальную задачу на уведомление')
+            return
+
+    # Удаление старой не актуальной задачи, если она была
+    if habit.task_id:
+        current_app.control.revoke(habit.task_id)
+        print(f'Отзываем задачу {habit.task_id}')
+
+    send_time = get_today_send_time(habit, local_now)
+
+    if send_time <= local_now:
         # переносим на завтра
         send_time += timedelta(days=1)
 

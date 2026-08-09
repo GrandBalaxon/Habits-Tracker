@@ -5,7 +5,7 @@ from django.utils import timezone
 
 from habits.models import Habit
 from habits.services import send_telegram_message, make_telegram_habit_message, get_today_send_time, \
-    schedule_habit_reminder
+    schedule_habit_reminder, revoke_and_clear_habit
 
 
 @shared_task
@@ -21,6 +21,7 @@ def send_habit_reminder(habit_id: str) -> None:
 
     chat_id = habit.user.telegram_chat_id
     if not chat_id:
+        revoke_and_clear_habit(habit)
         return
 
     # Отправляем сообщение
@@ -50,11 +51,6 @@ def set_up_all_reminders() -> None:
     habits = Habit.objects.filter(
         user__telegram_chat_id__isnull=False
     )
-    now = timezone.now()
 
     for habit in habits:
-        if not habit.task_id:
-            schedule_habit_reminder(habit.id)
-            continue
-        if habit.next_notification <= now:
-            schedule_habit_reminder(habit.id, revoke_old_task=True)
+        schedule_habit_reminder(habit.id)

@@ -1,4 +1,8 @@
+from datetime import datetime, timedelta
+
 import requests
+from celery import current_app
+from django.utils import timezone
 
 from config import settings
 from habits.models import Habit
@@ -13,7 +17,7 @@ def make_telegram_habit_message(habit: "Habit") -> str:
         4: "4 дня",
         5: "5 дней",
         6: "6 дней",
-        7: "7 дней"
+        7: "неделю"
     }
 
     message = (
@@ -48,3 +52,41 @@ def send_telegram_message(chat_id, message):
         'parse_mode': 'HTML'
     }
     requests.get(f'https://api.telegram.org/bot{settings.TELEGRAM_TOKEN}/sendMessage', params=params)
+
+
+def get_today_send_time(habit: "Habit", now: datetime) -> datetime:
+    habit_time = habit.time
+    return now.replace(
+        hour=habit_time.hour,
+        minute=habit_time.minute,
+        second=0,
+        microsecond=0
+    )
+
+
+def schedule_habit_reminder(habit_id: str, revoke_old_task=False) -> None:
+    """Создаёт или обновляет отложенную задачу для привычки."""
+    from habits.tasks import send_habit_reminder
+
+    try:
+        habit = Habit.objects.get(id=habit_id)
+    except Habit.DoesNotExist:
+        return
+
+    # Удаление старой не актуальной задачи
+    if revoke_old_task:
+        current_app.control.revoke(habit.task_id)
+
+    now = timezone.now()
+    send_time = get_today_send_time(habit, now)
+
+    if send_time <= now:
+        # переносим на завтра
+        send_time += timedelta(days=1)
+
+    task = send_habit_reminder.apply_async((habit.pk,), eta=send_time)
+    print(f'Запланирована привычка {habit.pk}: пользователь {habit.user}, время {send_time}')
+
+    habit.task_id = task.id
+    habit.next_notification = send_time
+    habit.save(update_fields=['task_id', 'next_notification'])

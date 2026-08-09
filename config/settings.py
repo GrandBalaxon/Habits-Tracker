@@ -134,8 +134,11 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
 CELERY_BEAT_SCHEDULE = {
-    'send_habit_reminder_notification': {
-        'task': 'habits.tasks.send_habit_reminder_notification',  # Путь к задаче
-        'schedule': timedelta(minutes=1),  # Расписание выполнения задачи
+    'set_up_all_reminders': {
+        'task': 'habits.tasks.set_up_all_reminders',  # Путь к задаче
+        'schedule': timedelta(hours=1),  # Расписание выполнения задачи
+        'options': {
+            'run_immediately': True,    # Выполнить немедленно при старте beat
+        }
     },
 }

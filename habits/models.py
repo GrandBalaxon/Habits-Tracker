@@ -28,7 +28,7 @@ class Habit(models.Model):
     reward = models.CharField(verbose_name="Вознаграждение", max_length=255, null=True, blank=True)
     is_public = models.BooleanField(default=False, verbose_name="Видна другим пользователям")
     task_id = models.CharField(max_length=255, null=True, blank=True, verbose_name="ID задачи Celery")
-    last_notification = models.DateField(null=True, blank=True, verbose_name="Время последнего оповещения")
+    next_notification = models.DateField(null=True, blank=True, verbose_name="Время следующего оповещения")
 
     class Meta:
         verbose_name = "Привычка"

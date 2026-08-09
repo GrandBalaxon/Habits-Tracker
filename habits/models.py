@@ -55,3 +55,23 @@ class Habit(models.Model):
                 "Время выполнения должно быть не больше 120 секунд"
             )
         super().clean()
+
+    def save(self, *args, **kwargs):
+        schedule_needed = False
+        if self.pk is None:
+            schedule_needed = True  # Новая привычка
+        else:
+            try:
+                old = Habit.objects.get(pk=self.pk)
+            except Habit.DoesNotExist:
+                schedule_needed = True
+            else:
+                # Проверяем, изменились ли критичные поля
+                if (old.time != self.time) or (old.periodicity != self.periodicity):
+                    schedule_needed = True
+                # Если telegram_chat_id мог измениться у пользователя – тоже можно добавить,
+                # но обычно он меняется редко, а если и меняется, задача всё равно не отправится.
+        super().save(*args, **kwargs)
+        if schedule_needed:
+            from .services import schedule_habit_reminder
+            schedule_habit_reminder(self.id)

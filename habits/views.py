@@ -14,7 +14,7 @@ from habits.serializers import HabitSerializer, PublicHabitSerializer
     description='Любой авторизованный пользователь может просматривать публичные привычки других пользователей.'
 )
 class HabitsListApiView(ListAPIView):
-    serializer_class = HabitSerializer
+    serializer_class = PublicHabitSerializer
     pagination_class = FiveElementsPagination
     permission_classes = [IsAuthenticated]
 

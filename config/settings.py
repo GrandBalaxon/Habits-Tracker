@@ -105,6 +105,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = "static/"
+STATIC_ROOT = BASE_DIR / 'staticfiles'   # Директория, куда collectstatic сложит файлы
 
 AUTH_USER_MODEL = "users.CustomUser"
 
@@ -156,7 +157,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
-CORS_ALLOW_ALL_ORIGINS = True if os.getenv("CORS_ALLOW_ALL_ORIGINS").lower() == "true" else False
+CORS_ALLOW_ALL_ORIGINS = os.getenv("CORS_ALLOW_ALL_ORIGINS", "False").lower() == "true"
 
 # Датабаза sqlite3 для запуска тестов
 if 'test' in sys.argv:

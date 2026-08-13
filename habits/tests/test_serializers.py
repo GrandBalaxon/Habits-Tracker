@@ -29,7 +29,6 @@ class HabitSerializerTests(BaseTestCase):
             serializer.errors
         )
 
-
     def test_periodicity_cannot_be_more_than_7_days(self):
         """Периодичность привычки не может быть больше 7 дней."""
         data = {
@@ -50,7 +49,6 @@ class HabitSerializerTests(BaseTestCase):
             "periodicity",
             serializer.errors
         )
-
 
     def test_reward_and_related_habit_cannot_exist_together(self):
         """Нельзя одновременно указать вознаграждение и связанную привычку."""
@@ -83,7 +81,6 @@ class HabitSerializerTests(BaseTestCase):
             str(serializer.errors)
         )
 
-
     def test_related_habit_must_be_pleasant(self):
         """Связанная привычка должна быть приятной."""
         normal_habit = Habit.objects.create(
@@ -114,7 +111,6 @@ class HabitSerializerTests(BaseTestCase):
             serializer.errors
         )
 
-
     def test_pleasant_habit_cannot_have_reward(self):
         """Приятная привычка не может иметь вознаграждение."""
         data = {
@@ -135,7 +131,6 @@ class HabitSerializerTests(BaseTestCase):
             "У приятной привычки не может быть вознаграждения",
             str(serializer.errors)
         )
-
 
     def test_public_habit_cannot_have_private_related_habit(self):
         """Публичная привычка не может иметь приватную связанную привычку."""
@@ -166,7 +161,6 @@ class HabitSerializerTests(BaseTestCase):
             "связанная привычка приватная",
             str(serializer.errors)
         )
-
 
     def test_valid_habit_is_created_successfully(self):
         """Корректная привычка успешно проходит сериализацию."""

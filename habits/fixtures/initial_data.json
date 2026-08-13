@@ -1,0 +1,249 @@
+[
+{
+    "model": "users.customuser",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$LQ8ijwJTipfS2xwdk5IF6V$Pjw0IXCwZj2A8Z0ku4zrV2rDqH12kLQRXQAGcc4xqM8=",
+        "last_login": "2026-07-29T13:29:27.003Z",
+        "is_superuser": true,
+        "first_name": "",
+        "last_name": "",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-07-29T12:27:41.855Z",
+        "email": "admin@mail.ru",
+        "username": "admin",
+        "telegram_chat_id": null,
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.customuser",
+    "pk": 2,
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$H4OljYtz8rrxikNnaxYTIo$Lv54mqcvOCeaec0F1lBVCjg2grS47P+wor8uyLAw2RE=",
+        "last_login": null,
+        "is_superuser": false,
+        "first_name": "",
+        "last_name": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-07-29T16:35:52Z",
+        "email": "uwu2000@mail.ru",
+        "username": null,
+        "telegram_chat_id": null,
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.customuser",
+    "pk": 5,
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$wrKGZ12D1ybzVQMAJ0ofSi$osRD3p31imfN4shwJnrMA+QPslTSUboUKW2FPslw3kE=",
+        "last_login": null,
+        "is_superuser": false,
+        "first_name": "",
+        "last_name": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-07-29T16:47:42Z",
+        "email": "chernika_forte_2000@mail.ru",
+        "username": null,
+        "telegram_chat_id": null,
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.customuser",
+    "pk": 6,
+    "fields": {
+        "password": "pbkdf2_sha256$1200000$lhESeNnO7pVy1wrQ3ChoDi$IucQWKZvOh38h298MG3ckk2V6fsRK43qRzCodaZf+gU=",
+        "last_login": null,
+        "is_superuser": false,
+        "first_name": "",
+        "last_name": "",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-07-29T17:59:57.642Z",
+        "email": "test@test.com",
+        "username": "TestUser",
+        "telegram_chat_id": null,
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "habits.habit",
+    "pk": 1,
+    "fields": {
+        "user": 1,
+        "place": "Ресторан",
+        "time": "19:00:00",
+        "duration": 60,
+        "periodicity": 7,
+        "action": "Не опаздывать на еженедельную встречу с друзьями",
+        "related_habit": null,
+        "is_pleasant": false,
+        "reward": "Заказать себе десерт",
+        "is_public": true,
+        "notifications_on": false,
+        "task_id": null,
+        "next_notification": null
+    }
+},
+{
+    "model": "habits.habit",
+    "pk": 2,
+    "fields": {
+        "user": 2,
+        "place": "Дом",
+        "time": "07:00:00",
+        "duration": 60,
+        "periodicity": 1,
+        "action": "Делать зарядку",
+        "related_habit": null,
+        "is_pleasant": false,
+        "reward": "Выпить чашку любимого кофе",
+        "is_public": true,
+        "notifications_on": false,
+        "task_id": null,
+        "next_notification": null
+    }
+},
+{
+    "model": "habits.habit",
+    "pk": 3,
+    "fields": {
+        "user": 2,
+        "place": "Рабочий стол",
+        "time": "09:10:00",
+        "duration": 120,
+        "periodicity": 1,
+        "action": "Планировать задачи на день",
+        "related_habit": null,
+        "is_pleasant": false,
+        "reward": "Посмотреть смешное видео",
+        "is_public": true,
+        "notifications_on": false,
+        "task_id": null,
+        "next_notification": null
+    }
+},
+{
+    "model": "habits.habit",
+    "pk": 4,
+    "fields": {
+        "user": 2,
+        "place": "Кухня",
+        "time": "22:00:00",
+        "duration": 60,
+        "periodicity": 1,
+        "action": "Не есть после 22:00",
+        "related_habit": null,
+        "is_pleasant": false,
+        "reward": "Утром съесть любимый десерт",
+        "is_public": true,
+        "notifications_on": false,
+        "task_id": null,
+        "next_notification": null
+    }
+},
+{
+    "model": "habits.habit",
+    "pk": 5,
+    "fields": {
+        "user": 5,
+        "place": "Дом",
+        "time": "18:30:00",
+        "duration": 120,
+        "periodicity": 1,
+        "action": "Принимать ванну с пеной",
+        "related_habit": null,
+        "is_pleasant": true,
+        "reward": null,
+        "is_public": true,
+        "notifications_on": false,
+        "task_id": null,
+        "next_notification": null
+    }
+},
+{
+    "model": "habits.habit",
+    "pk": 6,
+    "fields": {
+        "user": 5,
+        "place": "Диван",
+        "time": "22:24:00",
+        "duration": 90,
+        "periodicity": 1,
+        "action": "Смотреть серию любимого сериала",
+        "related_habit": null,
+        "is_pleasant": true,
+        "reward": null,
+        "is_public": true,
+        "notifications_on": false,
+        "task_id": null,
+        "next_notification": null
+    }
+},
+{
+    "model": "habits.habit",
+    "pk": 7,
+    "fields": {
+        "user": 5,
+        "place": "Парк",
+        "time": "18:00:00",
+        "duration": 120,
+        "periodicity": 1,
+        "action": "Гулять 30 минут после работы",
+        "related_habit": 5,
+        "is_pleasant": false,
+        "reward": null,
+        "is_public": true,
+        "notifications_on": false,
+        "task_id": null,
+        "next_notification": null
+    }
+},
+{
+    "model": "habits.habit",
+    "pk": 8,
+    "fields": {
+        "user": 5,
+        "place": "Дом",
+        "time": "22:23:00",
+        "duration": 60,
+        "periodicity": 1,
+        "action": "Читать книгу перед сном",
+        "related_habit": 6,
+        "is_pleasant": false,
+        "reward": null,
+        "is_public": true,
+        "notifications_on": false,
+        "task_id": null,
+        "next_notification": null
+    }
+},
+{
+    "model": "habits.habit",
+    "pk": 9,
+    "fields": {
+        "user": 5,
+        "place": "Кухня",
+        "time": "08:30:00",
+        "duration": 60,
+        "periodicity": 1,
+        "action": "Готовить здоровый завтрак",
+        "related_habit": null,
+        "is_pleasant": false,
+        "reward": "Выпить свежевыжатый сок",
+        "is_public": true,
+        "notifications_on": false,
+        "task_id": null,
+        "next_notification": null
+    }
+}
+]

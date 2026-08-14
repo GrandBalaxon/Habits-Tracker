@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 jobs:
   lint:
+    name: Run linters
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
@@ -29,6 +30,7 @@ jobs:
 
 
   test:
+    name: Run tests
     needs: lint
     runs-on: ubuntu-latest
     steps:
@@ -60,3 +62,40 @@ jobs:
           STRIPE_PUBLISHABLE_KEY: pk_test_dummy
           CORS_ALLOW_ALL_ORIGINS: "True"
         run: poetry run python manage.py test
+
+  build:
+    name: Build Docker image
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Build all images
+        run: docker compose build
+
+  deploy:
+    name: Deploy to server
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Deploy to server
+        env:
+          SSH_USER: ${{ secrets.SSH_USER }}
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: |
+          ssh -o StrictHostKeyChecking=no $SSH_USER@$SERVER_IP << EOF
+            cd /home/$SSH_USER/eduflow
+            git pull origin main
+            docker compose down
+            docker compose up -d --build
+            docker compose exec web python manage.py migrate
+          EOF

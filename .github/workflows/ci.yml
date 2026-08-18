@@ -93,7 +93,7 @@ jobs:
           SERVER_IP: ${{ secrets.SERVER_IP }}
         run: |
           ssh -o StrictHostKeyChecking=no $SSH_USER@$SERVER_IP << EOF
-            cd /home/$SSH_USER/eduflow
+            cd /home/$SSH_USER/Habits-Tracker
             git pull origin main
             docker compose down
             docker compose up -d --build

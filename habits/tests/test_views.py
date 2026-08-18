@@ -44,7 +44,6 @@ class HabitCreateTests(BaseTestCase):
             self.user.id
         )
 
-
     def test_unauthenticated_user_cannot_create_habit(self):
         """Неавторизованный пользователь не может создать привычку."""
 
@@ -77,7 +76,6 @@ class HabitListTests(BaseTestCase):
             1
         )
 
-
     def test_private_habits_are_not_in_public_list(self):
         """Приватные привычки не отображаются в публичном списке."""
         self.client.force_authenticate(user=self.user)
@@ -105,7 +103,6 @@ class HabitRetrieveTests(BaseTestCase):
             status.HTTP_200_OK
         )
 
-
     def test_user_can_get_public_habit(self):
         """Пользователь может получить чужую публичную привычку."""
         self.client.force_authenticate(user=self.user)
@@ -116,7 +113,6 @@ class HabitRetrieveTests(BaseTestCase):
             response.status_code,
             status.HTTP_200_OK
         )
-
 
     def test_user_cannot_get_private_habit_of_other_user(self):
         """Пользователь не может получить чужую приватную привычку."""
@@ -149,7 +145,6 @@ class HabitUpdateTests(BaseTestCase):
             response.status_code,
             status.HTTP_200_OK
         )
-
 
     def test_user_cannot_update_other_user_habit(self):
         """Пользователь не может изменить чужую привычку."""
@@ -185,7 +180,6 @@ class HabitDeleteTests(BaseTestCase):
             response.status_code,
             status.HTTP_204_NO_CONTENT
         )
-
 
     def test_user_cannot_delete_other_user_habit(self):
         """Пользователь не может удалить чужую привычку."""

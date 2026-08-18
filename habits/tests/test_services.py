@@ -27,7 +27,6 @@ class TelegramMessageTests(BaseTestCase):
         self.assertIn(str(self.habit.duration), message)
         self.assertIn(self.habit.reward, message)
 
-
     def test_message_contains_related_habit(self):
         """Сообщение содержит связанную привычку."""
         related = Habit.objects.create(
@@ -56,11 +55,11 @@ class TelegramSendTests(BaseTestCase):
     """Тесты отправки сообщений Telegram."""
 
     @patch("habits.services.requests.get")
-    def test_send_telegram_message_calls_api(self,mock_get):
+    def test_send_telegram_message_calls_api(self, mock_get):
         """
         Функция отправляет запрос в Telegram API.
         """
-        send_telegram_message("12345","Тестовое сообщение")
+        send_telegram_message("12345", "Тестовое сообщение")
 
         mock_get.assert_called_once()
 
@@ -82,7 +81,6 @@ class TelegramSendTests(BaseTestCase):
 
 class HabitTimeTests(BaseTestCase):
     """Тесты расчёта времени уведомления."""
-
 
     def test_get_today_send_time_returns_habit_time(self):
         """Время уведомления берётся из привычки."""
@@ -142,7 +140,6 @@ class ScheduleHabitTests(BaseTestCase):
         self.assertEqual(self.habit.task_id, "new-task-id")
         self.assertIsNotNone(self.habit.next_notification)
 
-
     @patch("habits.tasks.send_habit_reminder.apply_async")
     def test_schedule_does_not_create_duplicate_task(self, mock_apply_async):
         """Если задача уже актуальна, новая не создаётся."""
@@ -150,13 +147,12 @@ class ScheduleHabitTests(BaseTestCase):
         self.user.save()
 
         Habit.objects.filter(id=self.habit.id).update(
-            notifications_on = True,
-            next_notification = timezone.now() + timezone.timedelta(days=1)
+            notifications_on=True,
+            next_notification=timezone.now() + timezone.timedelta(days=1)
         )
 
         schedule_habit_reminder(self.habit.id)
         mock_apply_async.assert_not_called()
-
 
     @patch("habits.services.revoke_and_clear_habit")
     def test_schedule_clears_task_when_notifications_disabled(self, mock_revoke):

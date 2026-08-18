@@ -7,4 +7,4 @@ class HabitsConfig(AppConfig):
 
     def ready(self):
         # Импорт сигналов, чтобы они были зарегистрированы
-        import habits.signals
+        import habits.signals  # noqa: F401

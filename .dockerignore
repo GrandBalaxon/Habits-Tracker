@@ -1,0 +1,62 @@
+# Git history and GitHub Actions configuration are not needed in the image.
+.git
+**/.git
+.github
+**/.github
+.gitignore
+**/.gitignore
+
+# Local environment files, credentials, and private keys.
+**/.env
+**/.env.*
+**/.envrc
+**/*.env
+**/*.env.*
+**/.ssh
+**/*.pem
+**/*.key
+
+# Local Python environments and interpreter caches.
+**/.venv
+**/venv
+**/env
+**/ENV
+**/__pycache__
+**/*.py[cod]
+
+# Test, coverage, and tool caches.
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.tox
+**/.nox
+**/.cache
+**/.coverage
+**/.coverage.*
+**/coverage.xml
+**/htmlcov
+
+# Local databases, logs, and Celery's persistent schedule.
+**/*.sqlite
+**/*.sqlite-*
+**/*.sqlite3
+**/*.sqlite3-*
+**/*.db
+**/*.db-*
+**/*.log
+**/celerybeat-schedule*
+**/celerybeat.pid
+
+# Locally generated build and Django static output.
+build
+dist
+staticfiles
+**/*.egg-info
+
+# Editor and operating system files.
+**/.idea
+**/.vscode
+**/.DS_Store
+**/Thumbs.db
+**/*.swp
+**/*~

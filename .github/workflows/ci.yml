@@ -129,11 +129,49 @@ jobs:
       - name: Build all images
         run: docker compose build
 
-  deploy:
-    name: Deploy to server
+  check_server_status:
+    name: Check server availability
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    outputs:
+      server_up: ${{ steps.port_check.outputs.server_up }}
+
+    steps:
+      - name: Check SSH port
+        id: port_check
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: |
+          if [ -z "$SERVER_IP" ]; then
+            echo "::error::SERVER_IP не задан."
+            exit 1
+          fi
+
+          if ! command -v nc >/dev/null 2>&1; then
+            echo "::error::Утилита nc не установлена."
+            exit 1
+          fi
+
+          if nc -z -w 5 "$SERVER_IP" 22; then
+            echo "server_up=true" >> "$GITHUB_OUTPUT"
+            echo "SSH-порт доступен."
+          else
+            echo "server_up=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SSH-порт недоступен. Деплой будет пропущен."
+            echo "### Деплой пропущен: SSH-порт недоступен." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  deploy:
+    name: Deploy to server
+    needs: [build, check_server_status]
+    runs-on: ubuntu-latest
+
+    if: |
+      needs.check_server_status.outputs.server_up == 'true' && 
+      github.ref == 'refs/heads/main' && 
+      github.event_name == 'push'
 
     steps:
       - name: Set up SSH

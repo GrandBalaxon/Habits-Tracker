@@ -2,6 +2,9 @@ name: Django CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     name: Run linters
@@ -16,23 +19,74 @@ jobs:
           python-version: '3.14'
 
       - name: Install Poetry
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
 
-      - name: Install lint dependencies
-        run: |
-          poetry config virtualenvs.create false
-          poetry install --with lint
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-lint
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root --with lint
 
       - name: Run Flake8
         run: poetry run flake8 .
 
+  checks:
+    name: Run system and migration checks
+    runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings_ci
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-dev
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root --with dev
+
+      - name: Django System Check
+        run: poetry run python manage.py check
+        env:
+          SECRET_KEY: 'dummy-secret-key-for-ci'
+          DEBUG: "True"
+
+      - name: Check for missing migrations
+        run: poetry run python manage.py makemigrations --check --dry-run
+        env:
+          SECRET_KEY: 'dummy-secret-key-for-ci'
+          DEBUG: "True"
 
   test:
     name: Run tests
-    needs: lint
+    needs: [checks]
     runs-on: ubuntu-latest
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings_ci
     steps:
       - name: Check out Code
         uses: actions/checkout@v4
@@ -43,29 +97,43 @@ jobs:
           python-version: '3.14'
 
       - name: Install Poetry
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
+        uses: snok/install-poetry@v1
+        with:
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Load cached venv
+        id: cached-poetry-dependencies
+        uses: actions/cache@v4
+        with:
+          path: .venv
+          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}-dev
 
       - name: Install dependencies
-        run: |
-          poetry config virtualenvs.create false
-          poetry install --with dev
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root --with dev
 
-      - name: Run tests
+      - name: Run tests with coverage
         env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          SECRET_KEY: 'dummy-secret-key-for-ci'
           DEBUG: "True"
-          CELERY_BROKER_URL: redis://localhost:6379/0
-          CELERY_RESULT_BACKEND: redis://localhost:6379/0
-          STRIPE_SECRET_KEY: sk_test_dummy
-          STRIPE_PUBLISHABLE_KEY: pk_test_dummy
           CORS_ALLOW_ALL_ORIGINS: "True"
-        run: poetry run python manage.py test
+        run: poetry run coverage run manage.py test --noinput
+
+      - name: Show coverage report in logs
+        run: poetry run coverage report -m
+
+      - name: Upload coverage data
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-data
+          path: .coverage
+          include-hidden-files: true
+          if-no-files-found: error
 
   build:
     name: Build Docker image
-    needs: test
+    needs: [lint, test]
     runs-on: ubuntu-latest
 
     steps:
@@ -75,11 +143,49 @@ jobs:
       - name: Build all images
         run: docker compose build
 
-  deploy:
-    name: Deploy to server
+  check_server_status:
+    name: Check server availability
     needs: build
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    outputs:
+      server_up: ${{ steps.port_check.outputs.server_up }}
+
+    steps:
+      - name: Check SSH port
+        id: port_check
+        env:
+          SERVER_IP: ${{ secrets.SERVER_IP }}
+        run: |
+          if [ -z "$SERVER_IP" ]; then
+            echo "::error::SERVER_IP не задан."
+            exit 1
+          fi
+
+          if ! command -v nc >/dev/null 2>&1; then
+            echo "::error::Утилита nc не установлена."
+            exit 1
+          fi
+
+          if nc -z -w 5 "$SERVER_IP" 22; then
+            echo "server_up=true" >> "$GITHUB_OUTPUT"
+            echo "SSH-порт доступен."
+          else
+            echo "server_up=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SSH-порт недоступен. Деплой будет пропущен."
+            echo "### Деплой пропущен: SSH-порт недоступен." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  deploy:
+    name: Deploy to server
+    needs: [build, check_server_status]
+    runs-on: ubuntu-latest
+
+    if: |
+      needs.check_server_status.outputs.server_up == 'true' && 
+      github.ref == 'refs/heads/main' && 
+      github.event_name == 'push'
 
     steps:
       - name: Set up SSH
@@ -99,3 +205,31 @@ jobs:
             docker compose up -d --build
             docker compose exec web python manage.py migrate
           EOF
+
+  coverage:
+    name: Coverage report & badge
+    needs: [ test ]
+    runs-on: ubuntu-latest
+
+    if: |
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Download coverage data
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-data
+          path: .
+
+      - name: Coverage comment and badge
+        uses: py-cov-action/python-coverage-comment-action@v3
+        with:
+          GITHUB_TOKEN: ${{ github.token }}

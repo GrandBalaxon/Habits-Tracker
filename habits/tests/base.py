@@ -1,7 +1,7 @@
 from datetime import time
 
 from django.urls import reverse
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase, APIRequestFactory
 
 from habits.models import Habit
 from users.models import CustomUser
@@ -11,15 +11,20 @@ class BaseTestCase(APITestCase):
     """Базовый класс с общими тестовыми данными."""
 
     def setUp(self):
+        # Пользователи
         self.user = CustomUser.objects.create_user(
             email="user@test.ru",
             password="12345"
         )
-
         self.second_user = CustomUser.objects.create_user(
             email="second@test.ru",
             password="12345"
         )
+
+        # Создаем фейковый запрос от лица self.user
+        self.factory = APIRequestFactory()
+        self.request = self.factory.get('/')
+        self.request.user = self.user
 
         self.habit = Habit.objects.create(
             user=self.user,

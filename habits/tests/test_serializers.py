@@ -21,7 +21,7 @@ class HabitSerializerTests(BaseTestCase):
             "is_public": False,
             "notifications_on": False
         }
-        serializer = HabitSerializer(data=data)
+        serializer = HabitSerializer(data=data, context={'request': self.request})
 
         self.assertFalse(serializer.is_valid())
         self.assertIn(
@@ -42,7 +42,7 @@ class HabitSerializerTests(BaseTestCase):
             "is_public": False,
             "notifications_on": False
         }
-        serializer = HabitSerializer(data=data)
+        serializer = HabitSerializer(data=data, context={'request': self.request})
 
         self.assertFalse(serializer.is_valid())
         self.assertIn(
@@ -73,7 +73,7 @@ class HabitSerializerTests(BaseTestCase):
             "is_public": False,
             "notifications_on": False
         }
-        serializer = HabitSerializer(data=data)
+        serializer = HabitSerializer(data=data, context={'request': self.request})
 
         self.assertFalse(serializer.is_valid())
         self.assertIn(
@@ -103,7 +103,7 @@ class HabitSerializerTests(BaseTestCase):
             "is_public": False,
             "notifications_on": False
         }
-        serializer = HabitSerializer(data=data)
+        serializer = HabitSerializer(data=data, context={'request': self.request})
 
         self.assertFalse(serializer.is_valid())
         self.assertIn(
@@ -124,7 +124,7 @@ class HabitSerializerTests(BaseTestCase):
             "is_public": False,
             "notifications_on": False
         }
-        serializer = HabitSerializer(data=data)
+        serializer = HabitSerializer(data=data, context={'request': self.request})
 
         self.assertFalse(serializer.is_valid())
         self.assertIn(
@@ -154,7 +154,7 @@ class HabitSerializerTests(BaseTestCase):
             "is_public": True,
             "notifications_on": False
         }
-        serializer = HabitSerializer(data=data)
+        serializer = HabitSerializer(data=data, context={'request': self.request})
 
         self.assertFalse(serializer.is_valid())
         self.assertIn(
@@ -175,7 +175,7 @@ class HabitSerializerTests(BaseTestCase):
             "is_public": False,
             "notifications_on": False
         }
-        serializer = HabitSerializer(data=data)
+        serializer = HabitSerializer(data=data, context={'request': self.request})
 
         self.assertTrue(
             serializer.is_valid(),

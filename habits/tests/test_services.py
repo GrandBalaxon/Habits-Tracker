@@ -184,3 +184,30 @@ class ScheduleHabitTests(BaseTestCase):
         self.assertIn("Привычка 999999 не найдена", cm.output[0])
         # Проверяем, что задача в Celery не ушла
         mock_apply_async.assert_not_called()
+
+    @patch("habits.services.current_app.control.revoke")
+    @patch("habits.tasks.send_habit_reminder.apply_async")
+    def test_schedule_revokes_existing_task_on_force_revoke(self, mock_apply_async, mock_revoke):
+        """При обновлении привычки старая задача отзывается перед созданием новой."""
+        self.user.telegram_chat_id = "12345"
+        self.user.save()
+
+        # У привычки уже есть задача
+        Habit.objects.filter(id=self.habit.id).update(
+            notifications_on=True,
+            task_id="old-task-id"
+        )
+
+        mock_task = MagicMock()
+        mock_task.id = "new-task-id"
+        mock_apply_async.return_value = mock_task
+
+        # Вызываем с флагом force_revoke=True
+        schedule_habit_reminder(self.habit.id, force_revoke=True)
+
+        # Проверяем, что старый ID был отозван
+        mock_revoke.assert_called_once_with("old-task-id")
+
+        # Проверяем, что назначена новая задача
+        self.habit.refresh_from_db()
+        self.assertEqual(self.habit.task_id, "new-task-id")

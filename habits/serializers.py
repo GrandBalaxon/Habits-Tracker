@@ -10,8 +10,15 @@ class PublicHabitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Habit
         fields = [
-            'id', 'action', 'place', 'time', 'duration',
-            'periodicity', 'related_habit', 'reward', 'is_pleasant'
+            'id',
+            'action',
+            'place',
+            'time',
+            'duration',
+            'periodicity',
+            'related_habit',
+            'reward',
+            'is_pleasant'
         ]
 
     def get_related_habit(self, obj):
@@ -29,8 +36,22 @@ class HabitSerializer(serializers.ModelSerializer):
     """Сериализатор для собственных привычек."""
     class Meta:
         model = Habit
-        fields = '__all__'
-        read_only_fields = ['user']
+        fields = [
+            'user',
+            'place',
+            'time',
+            'duration',
+            'periodicity',
+            'action',
+            'related_habit',
+            'is_pleasant',
+            'reward',
+            'is_public',
+            'notifications_on',
+            'task_id',
+            'next_notification'
+        ]
+        read_only_fields = ['user', 'task_id', 'next_notification']
 
     @staticmethod
     def validate_duration(value):

@@ -103,6 +103,7 @@ def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
     try:
         habit = Habit.objects.get(id=habit_id)
     except Habit.DoesNotExist:
+        logger.warning(f"Привычка {habit_id} не найдена. Задача отменена.")
         return
 
     chat_id = habit.user.telegram_chat_id

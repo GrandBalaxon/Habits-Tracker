@@ -3,6 +3,8 @@ from datetime import time
 from django.utils import timezone
 from unittest.mock import patch, MagicMock
 
+from requests import RequestException
+
 from habits.models import Habit
 from habits.services import (
     make_telegram_habit_message,
@@ -65,18 +67,23 @@ class TelegramSendTests(BaseTestCase):
 
         _, kwargs = mock_get.call_args
 
-        self.assertEqual(
-            kwargs["params"]["chat_id"],
-            "12345"
-        )
-        self.assertEqual(
-            kwargs["params"]["text"],
-            "Тестовое сообщение"
-        )
-        self.assertEqual(
-            kwargs["params"]["parse_mode"],
-            "HTML"
-        )
+        self.assertEqual(kwargs["params"]["chat_id"], "12345")
+        self.assertEqual(kwargs["params"]["text"], "Тестовое сообщение")
+        self.assertEqual(kwargs["params"]["parse_mode"], "HTML")
+
+    @patch("habits.services.requests.get")
+    @patch("habits.services.logger.error")
+    def test_send_telegram_message_raises_on_error(self, mock_logger_error, mock_get):
+        """Если Telegram API вернул ошибку, она пробрасывается дальше."""
+        # Имитируем ошибку сети или статус 4xx/5xx
+        mock_get.side_effect = RequestException("Telegram API Error")
+
+        with self.assertRaises(RequestException):
+            send_telegram_message("12345", "Тестовое сообщение")
+
+        # Проверяем, что логгер был вызван с правильным текстом
+        mock_logger_error.assert_called_once()
+        self.assertIn("Ошибка при отправке сообщения", mock_logger_error.call_args[0][0])
 
 
 class HabitTimeTests(BaseTestCase):
@@ -165,3 +172,15 @@ class ScheduleHabitTests(BaseTestCase):
 
         schedule_habit_reminder(self.habit.id)
         mock_revoke.assert_called_once()
+
+    @patch("habits.tasks.send_habit_reminder.apply_async")
+    def test_schedule_returns_if_habit_does_not_exist(self, mock_apply_async):
+        """Если привычки нет, логируется предупреждение и задача не создается."""
+        # assertLogs перехватит логгер habits.services на уровне WARNING
+        with self.assertLogs('habits.services', level='WARNING') as cm:
+            schedule_habit_reminder(999999)
+
+        # Проверяем, что было именно предупреждение
+        self.assertIn("Привычка 999999 не найдена", cm.output[0])
+        # Проверяем, что задача в Celery не ушла
+        mock_apply_async.assert_not_called()

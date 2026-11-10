@@ -1,4 +1,5 @@
-# Habits-Tracker
+![Habits-Tracker — Small steps. Better habits. Напоминание: читать перед сном дома в 22:23.](docs/assets/readme-banner.jpg)
+
 
 [![Django CI](https://github.com/GrandBalaxon/Habits-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/GrandBalaxon/Habits-Tracker/actions/workflows/ci.yml)
 [![Coverage](https://raw.githubusercontent.com/GrandBalaxon/Habits-Tracker/python-coverage-comment-action-data/badge.svg)](https://github.com/GrandBalaxon/Habits-Tracker/tree/python-coverage-comment-action-data)
@@ -16,6 +17,11 @@
 
 Сервис предоставляет REST API, отправляет напоминания через Telegram-бота и позволяет авторизованным пользователям просматривать публичные привычки других пользователей.
 
+*Стилизованный пример уведомления в Telegram (не скриншот):*
+
+<img src="docs/assets/telegram-reminder.png" width="480" alt="Пример уведомления: читать книгу дома в 22:23 в течение 60 секунд, повторять через 24 часа; награда — 90 секунд сериала на диване в 22:24.">
+
+
 ## 🛠️ Возможности проекта
 
 - **Пользователи** — регистрация, JWT-аутентификация и управление своим профилем.
@@ -31,7 +37,7 @@
 
 Руководство по установке и запуску содержит настройку окружения, запуск через Docker и Poetry, проверку API, инструкции для тестов, демонстрационных данных и CI/CD.
 
-👉 **[Перейти к руководству](SETUP.md)**
+👉 **[Перейти к руководству](docs/SETUP.md)**
 
 ## 🔗 Основные маршруты
 

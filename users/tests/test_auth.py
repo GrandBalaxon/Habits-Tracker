@@ -62,3 +62,14 @@ class UserSerializerTests(APITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.username, "newname")
         self.assertTrue(self.user.check_password("OldPassword123!"))
+
+    def test_create_superuser_success(self):
+        """Успешное создание суперпользователя."""
+        superuser = CustomUser.objects.create_superuser(
+            email="super@test.ru",
+            password="SuperPassword123!"
+        )
+
+        self.assertTrue(superuser.is_staff)
+        self.assertTrue(superuser.is_superuser)
+        self.assertTrue(superuser.check_password("SuperPassword123!"))

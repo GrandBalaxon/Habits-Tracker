@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 
 from celery import shared_task
@@ -6,6 +7,8 @@ from django.utils import timezone
 from habits.models import Habit
 from habits.services import send_telegram_message, make_telegram_habit_message, get_today_send_time, \
     schedule_habit_reminder, revoke_and_clear_habit
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task
@@ -17,6 +20,7 @@ def send_habit_reminder(habit_id: str) -> None:
     try:
         habit = Habit.objects.get(id=habit_id)
     except Habit.DoesNotExist:
+        logger.warning(f"Привычка {habit_id} не найдена. Задача отменена.")
         return
 
     chat_id = habit.user.telegram_chat_id

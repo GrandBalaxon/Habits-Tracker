@@ -10,24 +10,26 @@ from users.models import CustomUser
 class BaseTestCase(APITestCase):
     """Базовый класс с общими тестовыми данными."""
 
-    def setUp(self):
-        # Пользователи
-        self.user = CustomUser.objects.create_user(
+    @classmethod
+    def setUpTestData(cls):
+        # ---------- Пользователи ----------
+        cls.user = CustomUser.objects.create_user(
             email="user@test.ru",
             password="12345"
         )
-        self.second_user = CustomUser.objects.create_user(
+        cls.second_user = CustomUser.objects.create_user(
             email="second@test.ru",
             password="12345"
         )
 
-        # Создаем фейковый запрос от лица self.user
-        self.factory = APIRequestFactory()
-        self.request = self.factory.get('/')
-        self.request.user = self.user
+        # Создаем фейковый запрос от лица cls.user
+        cls.factory = APIRequestFactory()
+        cls.request = cls.factory.get('/')
+        cls.request.user = cls.user
 
-        self.habit = Habit.objects.create(
-            user=self.user,
+        # ---------- Привычки ----------
+        cls.habit = Habit.objects.create(
+            user=cls.user,
             place="Дом",
             time=time(9, 0),
             duration=60,
@@ -38,9 +40,8 @@ class BaseTestCase(APITestCase):
             is_public=False,
             notifications_on=False
         )
-
-        self.public_habit = Habit.objects.create(
-            user=self.second_user,
+        cls.public_habit = Habit.objects.create(
+            user=cls.second_user,
             place="Парк",
             time=time(10, 0),
             duration=60,
@@ -51,9 +52,8 @@ class BaseTestCase(APITestCase):
             is_public=True,
             notifications_on=False
         )
-
-        self.private_habit = Habit.objects.create(
-            user=self.second_user,
+        cls.private_habit = Habit.objects.create(
+            user=cls.second_user,
             place="Дом",
             time=time(12, 0),
             duration=60,
@@ -64,18 +64,32 @@ class BaseTestCase(APITestCase):
             is_public=False,
             notifications_on=False
         )
+        cls.pleasant_habit = Habit.objects.create(
+            user=cls.user,
+            place="Диван",
+            time=time(20, 0),
+            duration=30,
+            periodicity=1,
+            action="Смотреть сериал",
+            is_pleasant=True,
+            is_public=False,
+            notifications_on=False
+        )
 
-        self.list_url = reverse("habits:list")
-        self.create_url = reverse("habits:create")
-        self.detail_url = reverse(
-            "habits:detail",
-            kwargs={"pk": self.habit.id}
-        )
-        self.update_url = reverse(
-            "habits:update",
-            kwargs={"pk": self.habit.id}
-        )
-        self.delete_url = reverse(
-            "habits:delete",
-            kwargs={"pk": self.habit.id}
-        )
+        # ---------- URL-ы ----------
+        cls.list_url = reverse("habits:list")
+        cls.create_url = reverse("habits:create")
+        cls.detail_url = reverse("habits:detail", kwargs={"pk": cls.habit.id})
+        cls.update_url = reverse("habits:update", kwargs={"pk": cls.habit.id})
+        cls.delete_url = reverse("habits:delete", kwargs={"pk": cls.habit.id})
+
+    # ---------- Хелперы: аутентификация ----------
+    def login_user(self) -> None:
+        self.client.force_authenticate(self.user)
+
+    def login_second_user(self) -> None:
+        self.client.force_authenticate(self.second_user)
+
+    def logout(self) -> None:
+        """Сбросить аутентификацию клиента."""
+        self.client.force_authenticate(None)

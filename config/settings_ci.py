@@ -1,4 +1,8 @@
+import logging
+
 from .settings import *  # noqa: F401,F403
+
+logging.disable(logging.INFO)
 
 DATABASES = {
     "default": {

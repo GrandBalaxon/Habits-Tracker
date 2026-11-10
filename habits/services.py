@@ -109,7 +109,7 @@ def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
     # Если уведомления к задаче выключены или нет chat_id — очищаем задачу
     if not habit.notifications_on or not chat_id:
         if habit.task_id:
-            print(f'Отзываем задачу {habit.task_id}')
+            logger.info(f'Отзываем задачу {habit.task_id}')
             revoke_and_clear_habit(habit)
         return
 
@@ -119,13 +119,13 @@ def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
     if not force_revoke:
         # Если уже есть активная задача и её время в будущем – завершаем операцию
         if habit.next_notification and habit.next_notification > local_now:
-            print(f'Привычка {habit.pk} уже имеет актуальную задачу на уведомление')
+            logger.info(f'Привычка {habit.pk} уже имеет актуальную задачу на уведомление')
             return
 
     # Удаление старой не актуальной задачи, если она была
     if habit.task_id:
         current_app.control.revoke(habit.task_id)
-        print(f'Отзываем задачу {habit.task_id}')
+        logger.info(f'Отзываем задачу {habit.task_id}')
 
     send_time = get_today_send_time(habit, local_now)
 
@@ -134,7 +134,7 @@ def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
         send_time += timedelta(days=1)
 
     task = send_habit_reminder.apply_async((habit.pk,), eta=send_time)
-    print(f'Запланирована привычка {habit.pk}: пользователь {habit.user}, время {send_time}')
+    logger.info(f'Запланирована привычка {habit.pk}: пользователь {habit.user}, время {send_time}')
 
     habit.task_id = task.id
     habit.next_notification = send_time

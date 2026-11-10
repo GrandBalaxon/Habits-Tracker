@@ -1,3 +1,5 @@
+from typing import Any
+
 from rest_framework import serializers
 
 from habits.models import Habit
@@ -10,12 +12,20 @@ class PublicHabitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Habit
         fields = [
-            'id', 'action', 'place', 'time', 'duration',
-            'periodicity', 'related_habit', 'reward', 'is_pleasant'
+            'id',
+            'action',
+            'place',
+            'time',
+            'duration',
+            'periodicity',
+            'related_habit',
+            'reward',
+            'is_pleasant'
         ]
 
     def get_related_habit(self, obj):
-        if obj.related_habit:
+        # Скрываем связанную привычку, если она приватная
+        if obj.related_habit and obj.related_habit.is_public:
             return {
                 'id': obj.related_habit.id,
                 'action': obj.related_habit.action,
@@ -29,54 +39,93 @@ class HabitSerializer(serializers.ModelSerializer):
     """Сериализатор для собственных привычек."""
     class Meta:
         model = Habit
-        fields = '__all__'
-        read_only_fields = ['user']
+        fields = [
+            'user',
+            'place',
+            'time',
+            'duration',
+            'periodicity',
+            'action',
+            'related_habit',
+            'is_pleasant',
+            'reward',
+            'is_public',
+            'notifications_on',
+            'task_id',
+            'next_notification'
+        ]
+        # Клиент не может менять создателя и внутренние поля Celery
+        read_only_fields = ['user', 'task_id', 'next_notification']
 
-    @staticmethod
-    def validate_duration(value):
-        if value > 120:
+    def validate_duration(self, value):
+        if value < 1 or value > 120:
             raise serializers.ValidationError(
-                "Время выполнения должно быть не больше 120 секунд"
+                "Время выполнения должно быть от 1 до 120 секунд"
             )
         return value
 
-    @staticmethod
-    def validate_periodicity(value):
-        if value > 7:
+    def validate_periodicity(self, value):
+        if value < 1 or value > 7:
             raise serializers.ValidationError(
-                "Нельзя выполнять привычку реже, чем 1 раз в 7 дней"
+                "Периодичность должна быть от 1 до 7 дней"
             )
         return value
 
-    @staticmethod
-    def validate_related_habit(value):
-        if value and not value.is_pleasant:
-            raise serializers.ValidationError(
-                "В связанные привычки могут попадать только привычки с признаком приятной"
-            )
+    def validate_related_habit(self, value):
+        if value:
+            if not value.is_pleasant:
+                raise serializers.ValidationError(
+                    "В связанные привычки могут попадать только приятные привычки"
+                )
+            # Проверка на владельца: нельзя привязывать чужие привычки
+            if value.user != self.context['request'].user:
+                raise serializers.ValidationError("Нельзя привязывать чужую привычку")
+
         return value
 
-    def validate(self, data):
-        # Исключить одновременный выбор связанной привычки и указания вознаграждения
-        if data.get('reward') and data.get('related_habit'):
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
+        """
+        Валидирует итоговое состояние привычки перед сохранением.
+
+        Для частичных обновлений (PATCH) объединяет новые данные из запроса с текущими значениями полей из экземпляра
+        модели. Это предотвращает обход бизнес-правил, когда клиент меняет только одно поле, игнорируя несовместимые
+        с ним существующие.
+        """
+        instance: Habit = self.instance
+
+        def get_field(field_name: str, default: Any = None) -> Any:
+            """
+            Возвращает значение поля из входящих данных (data) или из существующего объекта базы данных (instance).
+            """
+            if field_name in data:
+                return data[field_name]
+            return getattr(instance, field_name, default) if instance else default
+
+        is_pleasant = get_field('is_pleasant', False)
+        reward = get_field('reward')
+        related_habit = get_field('related_habit')
+        is_public = get_field('is_public', False)
+
+        # 1. Исключить одновременный выбор связанной привычки и указания вознаграждения
+        if reward and related_habit:
             raise serializers.ValidationError(
                 "Нельзя одновременно указать вознаграждение и связанную привычку"
             )
 
-        # У приятной привычки не может быть вознаграждения или связанной привычки
-        if data.get('is_pleasant'):
-            if data.get('reward'):
+        # 2. У приятной привычки не может быть вознаграждения или связанной привычки
+        if is_pleasant:
+            if reward:
                 raise serializers.ValidationError(
                     "У приятной привычки не может быть вознаграждения"
                 )
-            if data.get('related_habit'):
+            if related_habit:
                 raise serializers.ValidationError(
                     "У приятной привычки не может быть связанной привычки"
                 )
 
-        # Если привычка публичная и имеет связанную привычку, связанная привычка тоже должна быть публичной
-        if data.get('is_public') and data.get('related_habit'):
-            if not data['related_habit'].is_public:
+        # 3. Если привычка публичная и имеет связанную привычку, связанная привычка тоже должна быть публичной
+        if is_public and related_habit:
+            if not related_habit.is_public:
                 raise serializers.ValidationError(
                     "Нельзя сделать привычку публичной, если связанная привычка приватная. "
                     "Сначала сделайте связанную привычку публичной."

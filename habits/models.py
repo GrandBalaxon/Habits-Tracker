@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from users.models import CustomUser
@@ -13,8 +14,15 @@ class Habit(models.Model):
     place = models.CharField(max_length=100, null=True, blank=True, verbose_name="Место")
 
     time = models.TimeField(verbose_name="Время")
-    duration = models.PositiveIntegerField(verbose_name="Время на выполнение в секундах")
-    periodicity = models.PositiveIntegerField(default=1, verbose_name="Периодичность в днях")
+    duration = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(120)],
+        verbose_name="Время на выполнение в секундах"
+    )
+    periodicity = models.PositiveIntegerField(
+        default=1,
+        validators=[MinValueValidator(1), MaxValueValidator(7)],
+        verbose_name="Периодичность в днях"
+    )
 
     action = models.CharField(verbose_name="Действие")
     related_habit = models.ForeignKey(

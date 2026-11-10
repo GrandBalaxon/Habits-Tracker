@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
@@ -24,6 +25,11 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     def get_habits_count(self, obj):
         return obj.habits.count()
+
+    def validate_password(self, value):
+        """Валидирует пароль, используя встроенные настройки Django."""
+        validate_password(value)
+        return value
 
     def create(self, validated_data):
         password = validated_data.pop('password')

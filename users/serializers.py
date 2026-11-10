@@ -10,7 +10,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ["email", "username", "password", "habits_count"]
+        fields = ["email", "username", "password", "telegram_chat_id", "habits_count"]
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {

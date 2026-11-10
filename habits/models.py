@@ -45,10 +45,10 @@ class Habit(models.Model):
         verbose_name_plural = "Привычки"
         ordering = ["-id"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Я буду {self.action} в {self.time} в {self.place}"
 
-    def clean(self):
+    def clean(self) -> None:
         if self.is_pleasant and self.reward:
             raise ValidationError(
                 "У приятной привычки не может быть вознаграждения"
@@ -66,29 +66,3 @@ class Habit(models.Model):
                 "Время выполнения должно быть не больше 120 секунд"
             )
         super().clean()
-
-    def save(self, *args, **kwargs):
-        schedule_needed = False
-        if self.pk is None:
-            # Новая привычка
-            schedule_needed = True
-        else:
-            try:
-                old = Habit.objects.get(pk=self.pk)
-            except Habit.DoesNotExist:
-                schedule_needed = True
-            else:
-                # Проверяем, изменились ли критичные поля
-                if (old.time != self.time) or (old.periodicity != self.periodicity) or (
-                        old.notifications_on != self.notifications_on):
-                    schedule_needed = True
-
-        super().save(*args, **kwargs)
-
-        if schedule_needed and self.notifications_on:
-            from .services import schedule_habit_reminder
-            schedule_habit_reminder(self.id, force_revoke=True)
-        elif not self.notifications_on and self.task_id:
-            from celery import current_app
-            current_app.control.revoke(self.task_id)
-            Habit.objects.filter(pk=self.pk).update(task_id=None, next_notification=None)

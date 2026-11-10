@@ -137,6 +137,11 @@ CELERY_TASK_TRACK_STARTED = True
 # Максимальное время на выполнение задачи
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
+CELERY_BROKER_TRANSPORT_OPTIONS = {
+    # 7 дней в секундах
+    'visibility_timeout': 604800
+}
+
 CELERY_BEAT_SCHEDULE = {
     'set_up_all_reminders': {
         'task': 'habits.tasks.set_up_all_reminders',  # Путь к задаче

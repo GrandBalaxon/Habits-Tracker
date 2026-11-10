@@ -1,11 +1,15 @@
+import logging
 from datetime import datetime, timedelta
 
 import requests
 from celery import current_app
 from django.utils import timezone
+from requests import RequestException
 
 from config import settings
 from habits.models import Habit
+
+logger = logging.getLogger(__name__)
 
 
 def make_telegram_habit_message(habit: "Habit") -> str:
@@ -44,14 +48,24 @@ def make_telegram_habit_message(habit: "Habit") -> str:
     return message
 
 
-def send_telegram_message(chat_id: str, message: str):
+def send_telegram_message(chat_id: str, message: str) -> None:
     """Отправляет сообщение в чат-бот Telegram."""
     params = {
         'chat_id': chat_id,
         'text': message,
         'parse_mode': 'HTML'
     }
-    requests.get(f'https://api.telegram.org/bot{settings.TELEGRAM_TOKEN}/sendMessage', params=params)
+
+    try:
+        response = requests.get(
+            f'https://api.telegram.org/bot{settings.TELEGRAM_TOKEN}/sendMessage',
+            params=params,
+            timeout=10
+        )
+        response.raise_for_status()
+    except RequestException as e:
+        logger.error(f"Ошибка при отправке сообщения в Telegram для chat_id {chat_id}: {e}")
+        raise
 
 
 def get_today_send_time(habit: "Habit", now: datetime) -> datetime:

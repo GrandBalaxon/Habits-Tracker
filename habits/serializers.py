@@ -37,6 +37,7 @@ class PublicHabitSerializer(serializers.ModelSerializer):
 
 class HabitSerializer(serializers.ModelSerializer):
     """Сериализатор для собственных привычек."""
+
     class Meta:
         model = Habit
         fields = [
@@ -56,20 +57,6 @@ class HabitSerializer(serializers.ModelSerializer):
         ]
         # Клиент не может менять создателя и внутренние поля Celery
         read_only_fields = ['user', 'task_id', 'next_notification']
-
-    def validate_duration(self, value):
-        if value < 1 or value > 120:
-            raise serializers.ValidationError(
-                "Время выполнения должно быть от 1 до 120 секунд"
-            )
-        return value
-
-    def validate_periodicity(self, value):
-        if value < 1 or value > 7:
-            raise serializers.ValidationError(
-                "Периодичность должна быть от 1 до 7 дней"
-            )
-        return value
 
     def validate_related_habit(self, value):
         if value:

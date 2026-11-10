@@ -1,5 +1,3 @@
-from datetime import time
-
 from habits.serializers import HabitSerializer, PublicHabitSerializer
 from habits.tests.base import BaseTestCase
 from habits.models import Habit
@@ -100,8 +98,7 @@ class HabitSerializerTests(BaseTestCase):
         serializer = HabitSerializer(data=data, context={'request': self.request})
 
         self.assertFalse(serializer.is_valid())
-        self.assertIn("У приятной привычки не может быть вознаграждения", str(serializer.errors)
-        )
+        self.assertIn("У приятной привычки не может быть вознаграждения", str(serializer.errors))
 
     def test_public_habit_cannot_have_private_related_habit(self):
         """Публичная привычка не может иметь приватную связанную привычку."""

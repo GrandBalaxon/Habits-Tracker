@@ -36,7 +36,7 @@ class UserTests(APITestCase):
         self.login_user()
 
         # Создаем привычку для текущего пользователя
-        my_habit = Habit.objects.create(
+        Habit.objects.create(
             user=self.user,
             place="Дом",
             time="08:00:00",

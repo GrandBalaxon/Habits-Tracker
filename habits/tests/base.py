@@ -83,7 +83,6 @@ class BaseTestCase(APITestCase):
         cls.update_url = reverse("habits:update", kwargs={"pk": cls.habit.id})
         cls.delete_url = reverse("habits:delete", kwargs={"pk": cls.habit.id})
 
-
     # ---------- Хелперы: аутентификация ----------
     def login_user(self) -> None:
         self.client.force_authenticate(self.user)

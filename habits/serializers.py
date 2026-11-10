@@ -22,7 +22,8 @@ class PublicHabitSerializer(serializers.ModelSerializer):
         ]
 
     def get_related_habit(self, obj):
-        if obj.related_habit:
+        # Скрываем связанную привычку, если она приватная
+        if obj.related_habit and obj.related_habit.is_public:
             return {
                 'id': obj.related_habit.id,
                 'action': obj.related_habit.action,
@@ -51,30 +52,33 @@ class HabitSerializer(serializers.ModelSerializer):
             'task_id',
             'next_notification'
         ]
+        # Клиент не может менять создателя и внутренние поля Celery
         read_only_fields = ['user', 'task_id', 'next_notification']
 
-    @staticmethod
-    def validate_duration(value):
-        if value > 120:
+    def validate_duration(self, value):
+        if value < 1 or value > 120:
             raise serializers.ValidationError(
-                "Время выполнения должно быть не больше 120 секунд"
+                "Время выполнения должно быть от 1 до 120 секунд"
             )
         return value
 
-    @staticmethod
-    def validate_periodicity(value):
-        if value > 7:
+    def validate_periodicity(self, value):
+        if value < 1 or value > 7:
             raise serializers.ValidationError(
-                "Нельзя выполнять привычку реже, чем 1 раз в 7 дней"
+                "Периодичность должна быть от 1 до 7 дней"
             )
         return value
 
-    @staticmethod
-    def validate_related_habit(value):
-        if value and not value.is_pleasant:
-            raise serializers.ValidationError(
-                "В связанные привычки могут попадать только привычки с признаком приятной"
-            )
+    def validate_related_habit(self, value):
+        if value:
+            if not value.is_pleasant:
+                raise serializers.ValidationError(
+                    "В связанные привычки могут попадать только приятные привычки"
+                )
+            # Проверка на владельца: нельзя привязывать чужие привычки
+            if value.user != self.context['request'].user:
+                raise serializers.ValidationError("Нельзя привязывать чужую привычку")
+
         return value
 
     def validate(self, data):

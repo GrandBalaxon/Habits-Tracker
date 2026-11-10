@@ -64,6 +64,17 @@ class BaseTestCase(APITestCase):
             is_public=False,
             notifications_on=False
         )
+        cls.pleasant_habit = Habit.objects.create(
+            user=cls.user,
+            place="Диван",
+            time=time(20, 0),
+            duration=30,
+            periodicity=1,
+            action="Смотреть сериал",
+            is_pleasant=True,
+            is_public=False,
+            notifications_on=False
+        )
 
         # ---------- URL-ы ----------
         cls.list_url = reverse("habits:list")

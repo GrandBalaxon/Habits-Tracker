@@ -3,6 +3,7 @@ from datetime import timedelta
 
 from celery import shared_task
 from django.utils import timezone
+from requests import RequestException
 
 from habits.models import Habit
 from habits.services import send_telegram_message, make_telegram_habit_message, get_today_send_time, \
@@ -11,7 +12,7 @@ from habits.services import send_telegram_message, make_telegram_habit_message, 
 logger = logging.getLogger(__name__)
 
 
-@shared_task
+@shared_task(autoretry_for=(RequestException,), retry_backoff=True, max_retries=3)
 def send_habit_reminder(habit_id: str) -> None:
     """
     Отправляет сообщение пользователю в Telegram чате, при наличии у оного TG ID в профиле,

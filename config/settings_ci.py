@@ -1,4 +1,8 @@
+import logging
+
 from .settings import *  # noqa: F401,F403
+
+logging.disable(logging.INFO)
 
 DATABASES = {
     "default": {
@@ -9,3 +13,8 @@ DATABASES = {
 
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# Ускоряет тесты, заменяя медленный PBKDF2 на MD5
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.MD5PasswordHasher",
+]

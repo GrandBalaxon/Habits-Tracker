@@ -101,7 +101,8 @@ def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
     from habits.tasks import send_habit_reminder
 
     try:
-        habit = Habit.objects.get(id=habit_id)
+        # Забираем привычку вместе с ее пользователем одним запросом
+        habit = Habit.objects.select_related('user').get(id=habit_id)
     except Habit.DoesNotExist:
         logger.warning(f"Привычка {habit_id} не найдена. Задача отменена.")
         return

@@ -54,7 +54,7 @@ def set_up_all_reminders() -> None:
     """Проходится по всем привычкам, создавая задачи на установку уведомлений."""
     habits = Habit.objects.filter(
         user__telegram_chat_id__isnull=False
-    )
+    ).select_related('user')
 
     for habit in habits:
         schedule_habit_reminder(habit.id)

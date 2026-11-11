@@ -62,3 +62,20 @@ class HabitSignalTests(BaseTestCase):
         # Проверяем, что ошибка была перехвачена и залогирована
         mock_logger.assert_called_once()
         self.assertIn("Celery connection error", mock_logger.call_args[0][0])
+
+    @patch("habits.signals.current_app.control.revoke")
+    @patch("habits.signals.logger.error")
+    def test_pre_delete_logs_error_if_revoke_fails(self, mock_logger, mock_revoke, mock_on_commit):
+        """Если при удалении привычки Celery падает, ошибка логируется."""
+        self.habit.task_id = "task-to-delete"
+
+        # Имитируем падение Celery
+        mock_revoke.side_effect = Exception("Celery is down")
+
+        # Удаляем привычку
+        self.habit.delete()
+
+        # Проверяем, что ошибка перехвачена и залогирована
+        mock_logger.assert_called_once()
+
+        self.assertIn("Не удалось отозвать задачу при удалении: Exception", mock_logger.call_args[0][0])

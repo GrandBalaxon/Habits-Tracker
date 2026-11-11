@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 import requests
 from celery import current_app
 from django.utils import timezone
+from django.utils.html import escape
 from requests import RequestException
 
 from config import settings
@@ -24,23 +25,34 @@ def make_telegram_habit_message(habit: "Habit") -> str:
         7: "неделю"
     }
 
+    # Обязательно экранируем текст, который ввел пользователь!
+    safe_action = escape(habit.action)
+    safe_place = escape(habit.place or 'Не указано')
+
     message = (
-        f"<b>Привычка</b>  →  <i>{habit.action}</i>\n"
-        f"<b>Место</b> →  <i>{habit.place or 'Не указано'}</i>\n"
+        f"<b>Привычка</b>  →  <i>{safe_action}</i>\n"
+        f"<b>Место</b> →  <i>{safe_place}</i>\n"
         f"<b>Начало в</b>  →  <i>{habit.time.strftime('%H:%M')}</i>\n"
         f"<b>Время на выполнение</b>  →  <i>{habit.duration} секунд</i>\n"
         f"<b>Следующий раз</b>  →  <i>Через {next_time.get(habit.periodicity)}</i>\n"
     )
 
     if habit.reward:
-        message += f"\n<b>Вознаграждение 🎁</b>  →  <i>{habit.reward}</i>"
+        # Экранируем вознаграждение
+        safe_reward = escape(habit.reward)
+        message += f"\n<b>Вознаграждение 🎁</b>  →  <i>{safe_reward}</i>"
 
     elif habit.related_habit:
         related = Habit.objects.get(id=habit.related_habit.id)
+
+        # Экранируем данные связанной привычки
+        safe_related_action = escape(related.action)
+        safe_related_place = escape(related.place or 'Не указано')
+
         message += (
             f"\n<b>Связанная привычка-вознаграждение 🎁</b>\n"
-            f"<code>Занятие  →  {related.action}</code>\n"
-            f"<code>Место  →  {related.place or 'Не указано'}</code>\n"
+            f"<code>Занятие  →  {safe_related_action}</code>\n"
+            f"<code>Место  →  {safe_related_place}</code>\n"
             f"<code>Начало в  →  {related.time.strftime('%H:%M')}</code>\n"
             f"<code>Время на выполнение  →  {related.duration} секунд</code>\n"
         )
@@ -64,7 +76,7 @@ def send_telegram_message(chat_id: str, message: str) -> None:
         )
         response.raise_for_status()
     except RequestException as e:
-        logger.error(f"Ошибка при отправке сообщения в Telegram для chat_id {chat_id}: {e}")
+        logger.error(f"Ошибка при отправке сообщения в Telegram для chat_id {chat_id}. Тип: {type(e).__name__}")
         raise
 
 
@@ -86,9 +98,10 @@ def revoke_and_clear_habit(habit: "Habit") -> None:
     """
     if habit.task_id:
         current_app.control.revoke(habit.task_id)
-    habit.task_id = None
-    habit.next_notification = None
-    habit.save(update_fields=['task_id', 'next_notification'])
+    Habit.objects.filter(pk=habit.pk).update(
+        task_id=None,
+        next_notification=None
+    )
 
 
 def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
@@ -101,7 +114,8 @@ def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
     from habits.tasks import send_habit_reminder
 
     try:
-        habit = Habit.objects.get(id=habit_id)
+        # Забираем привычку вместе с ее пользователем одним запросом
+        habit = Habit.objects.select_related('user').get(id=habit_id)
     except Habit.DoesNotExist:
         logger.warning(f"Привычка {habit_id} не найдена. Задача отменена.")
         return
@@ -137,6 +151,7 @@ def schedule_habit_reminder(habit_id: str, force_revoke: bool = False) -> None:
     task = send_habit_reminder.apply_async((habit.pk,), eta=send_time)
     logger.info(f'Запланирована привычка {habit.pk}: пользователь {habit.user}, время {send_time}')
 
-    habit.task_id = task.id
-    habit.next_notification = send_time
-    habit.save(update_fields=['task_id', 'next_notification'])
+    Habit.objects.filter(pk=habit.pk).update(
+        task_id=task.id,
+        next_notification=send_time
+    )

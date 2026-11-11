@@ -247,3 +247,23 @@ class HabitSerializerTests(BaseTestCase):
         self.assertIsInstance(serializer.data["related_habit"], dict)
         self.assertEqual(serializer.data["related_habit"]["id"], public_pleasant.id)
         self.assertEqual(serializer.data["related_habit"]["action"], "Публичная награда")
+
+    def test_habit_cannot_reference_itself(self):
+        """Привычка не может ссылаться сама на себя."""
+        data = {
+            "related_habit": self.pleasant_habit.id
+        }
+
+        # Передаем instance=self.pleasant_habit
+        serializer = HabitSerializer(
+            instance=self.pleasant_habit,
+            data=data,
+            partial=True,
+            context={'request': self.request}
+        )
+
+        self.assertFalse(serializer.is_valid())
+        self.assertIn(
+            "Привычка не может ссылаться сама на себя",
+            str(serializer.errors)
+        )

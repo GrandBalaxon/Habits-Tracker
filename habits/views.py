@@ -19,21 +19,25 @@ class HabitsListApiView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Habit.objects.filter(is_public=True).exclude(user=self.request.user)
+        queryset = Habit.objects.filter(is_public=True)\
+            .exclude(user=self.request.user)\
+            .select_related('related_habit')
+        return queryset
 
 
 @extend_schema(
     tags=['Привычки'],
     summary='Детали привычки',
-    description='Пользователь может посмотреть детали своей привычки или любой публичной привычки.'
+    description='Пользователь может посмотреть детали своей привычки или любой публичной привычки.',
+    responses=HabitSerializer
 )
 class HabitRetrieveApiView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         return Habit.objects.filter(
-                    Q(user=self.request.user) | Q(is_public=True)
-                )
+            Q(user=self.request.user) | Q(is_public=True)
+        ).select_related('related_habit')
 
     def get_serializer_class(self):
         habit = self.get_object()
@@ -44,7 +48,8 @@ class HabitRetrieveApiView(RetrieveAPIView):
 
 @extend_schema(
     tags=['Привычки'],
-    summary='Создание привычки'
+    summary='Создание привычки',
+    responses={201: HabitSerializer}
 )
 class HabitCreateApiView(CreateAPIView):
     serializer_class = HabitSerializer
@@ -57,7 +62,8 @@ class HabitCreateApiView(CreateAPIView):
 @extend_schema(
     tags=['Привычки'],
     summary='Обновление привычки',
-    description='Авторизованный пользователь может редактировать только свои привычки.'
+    description='Авторизованный пользователь может редактировать только свои привычки.',
+    responses={200: HabitSerializer}
 )
 class HabitUpdateApiView(UpdateAPIView):
     serializer_class = HabitSerializer

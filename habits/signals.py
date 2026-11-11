@@ -36,4 +36,7 @@ def habit_post_save(sender, instance, created, **kwargs):
 def habit_pre_delete(sender, instance, **kwargs):
     """Перед удалением привычки отзываем связанную задачу Celery."""
     if instance.task_id:
-        current_app.control.revoke(instance.task_id)
+        try:
+            current_app.control.revoke(instance.task_id)
+        except Exception as e:
+            logger.error(f"Не удалось отозвать задачу при удалении: {type(e).__name__}")

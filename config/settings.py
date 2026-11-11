@@ -114,6 +114,10 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework_simplejwt.authentication.JWTAuthentication',],
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated',],
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+
+    # Глобальная пагинация
+    'DEFAULT_PAGINATION_CLASS': 'habits.pagination.FiveElementsPagination',
+    'PAGE_SIZE': 5,
 }
 
 # Настройки срока действия токенов

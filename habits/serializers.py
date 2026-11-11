@@ -41,6 +41,7 @@ class HabitSerializer(serializers.ModelSerializer):
     class Meta:
         model = Habit
         fields = [
+            'id',
             'user',
             'place',
             'time',
@@ -67,6 +68,9 @@ class HabitSerializer(serializers.ModelSerializer):
             # Проверка на владельца: нельзя привязывать чужие привычки
             if value.user != self.context['request'].user:
                 raise serializers.ValidationError("Нельзя привязывать чужую привычку")
+            # Проверка на self referencing
+            if self.instance and value.id == self.instance.id:
+                raise serializers.ValidationError("Привычка не может ссылаться сама на себя")
 
         return value
 

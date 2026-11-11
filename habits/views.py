@@ -19,7 +19,10 @@ class HabitsListApiView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Habit.objects.filter(is_public=True).exclude(user=self.request.user)
+        queryset = Habit.objects.filter(is_public=True)\
+            .exclude(user=self.request.user)\
+            .select_related('related_habit')
+        return queryset
 
 
 @extend_schema(
@@ -33,8 +36,8 @@ class HabitRetrieveApiView(RetrieveAPIView):
 
     def get_queryset(self):
         return Habit.objects.filter(
-                    Q(user=self.request.user) | Q(is_public=True)
-                )
+            Q(user=self.request.user) | Q(is_public=True)
+        ).select_related('related_habit')
 
     def get_serializer_class(self):
         habit = self.get_object()

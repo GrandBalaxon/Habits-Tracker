@@ -2,28 +2,28 @@
 
 [Full report](https://htmlpreview.github.io/?https://github.com/GrandBalaxon/Habits-Tracker/blob/python-coverage-comment-action-data/htmlcov/index.html)
 
-| Name                   |    Stmts |     Miss |   Cover |   Missing |
-|----------------------- | -------: | -------: | ------: | --------: |
-| config/\_\_init\_\_.py |        2 |        0 |    100% |           |
-| config/celery.py       |        7 |        0 |    100% |           |
-| config/urls.py         |        6 |        0 |    100% |           |
-| habits/admin.py        |        8 |        0 |    100% |           |
-| habits/apps.py         |        6 |        0 |    100% |           |
-| habits/models.py       |       51 |       18 |     65% |41, 44-60, 70-71, 76, 81-82, 84-86 |
-| habits/pagination.py   |        4 |        0 |    100% |           |
-| habits/serializers.py  |       43 |        3 |     93% | 19, 72-73 |
-| habits/services.py     |       57 |        4 |     93% |91-92, 113-114 |
-| habits/signals.py      |        8 |        1 |     88% |        11 |
-| habits/tasks.py        |       29 |       20 |     31% |17-45, 51-56 |
-| habits/urls.py         |        4 |        0 |    100% |           |
-| habits/views.py        |       41 |        0 |    100% |           |
-| users/admin.py         |        8 |        0 |    100% |           |
-| users/apps.py          |        3 |        0 |    100% |           |
-| users/models.py        |       33 |        8 |     76% |  9, 17-25 |
-| users/serializers.py   |       25 |       13 |     48% |26, 29-33, 36-42 |
-| users/urls.py          |        4 |        0 |    100% |           |
-| users/views.py         |       38 |        4 |     89% |29, 42, 55, 68 |
-| **TOTAL**              |  **377** |   **71** | **81%** |           |
+| Name                   |    Stmts |     Miss |    Cover |   Missing |
+|----------------------- | -------: | -------: | -------: | --------: |
+| config/\_\_init\_\_.py |        2 |        0 |     100% |           |
+| config/celery.py       |        7 |        0 |     100% |           |
+| config/urls.py         |        6 |        0 |     100% |           |
+| habits/admin.py        |        8 |        0 |     100% |           |
+| habits/apps.py         |        6 |        0 |     100% |           |
+| habits/models.py       |       34 |        0 |     100% |           |
+| habits/pagination.py   |        4 |        0 |     100% |           |
+| habits/serializers.py  |       47 |        0 |     100% |           |
+| habits/services.py     |       68 |        0 |     100% |           |
+| habits/signals.py      |       31 |        0 |     100% |           |
+| habits/tasks.py        |       33 |        0 |     100% |           |
+| habits/urls.py         |        4 |        0 |     100% |           |
+| habits/views.py        |       42 |        0 |     100% |           |
+| users/admin.py         |       11 |        0 |     100% |           |
+| users/apps.py          |        3 |        0 |     100% |           |
+| users/models.py        |       33 |        0 |     100% |           |
+| users/serializers.py   |       29 |        0 |     100% |           |
+| users/urls.py          |        4 |        0 |     100% |           |
+| users/views.py         |       38 |        0 |     100% |           |
+| **TOTAL**              |  **410** |    **0** | **100%** |           |
 
 2 empty files skipped.
 

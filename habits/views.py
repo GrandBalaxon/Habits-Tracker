@@ -25,7 +25,8 @@ class HabitsListApiView(ListAPIView):
 @extend_schema(
     tags=['Привычки'],
     summary='Детали привычки',
-    description='Пользователь может посмотреть детали своей привычки или любой публичной привычки.'
+    description='Пользователь может посмотреть детали своей привычки или любой публичной привычки.',
+    responses=HabitSerializer
 )
 class HabitRetrieveApiView(RetrieveAPIView):
     permission_classes = [IsAuthenticated]
@@ -44,7 +45,8 @@ class HabitRetrieveApiView(RetrieveAPIView):
 
 @extend_schema(
     tags=['Привычки'],
-    summary='Создание привычки'
+    summary='Создание привычки',
+    responses={201: HabitSerializer}
 )
 class HabitCreateApiView(CreateAPIView):
     serializer_class = HabitSerializer
@@ -57,7 +59,8 @@ class HabitCreateApiView(CreateAPIView):
 @extend_schema(
     tags=['Привычки'],
     summary='Обновление привычки',
-    description='Авторизованный пользователь может редактировать только свои привычки.'
+    description='Авторизованный пользователь может редактировать только свои привычки.',
+    responses={200: HabitSerializer}
 )
 class HabitUpdateApiView(UpdateAPIView):
     serializer_class = HabitSerializer

@@ -1,6 +1,5 @@
 ![Habits-Tracker — Small steps. Better habits. Напоминание: читать перед сном дома в 22:23.](docs/assets/readme-banner.jpg)
 
-
 [![Django CI](https://github.com/GrandBalaxon/Habits-Tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/GrandBalaxon/Habits-Tracker/actions/workflows/ci.yml)
 [![Coverage](https://raw.githubusercontent.com/GrandBalaxon/Habits-Tracker/python-coverage-comment-action-data/badge.svg)](https://github.com/GrandBalaxon/Habits-Tracker/tree/python-coverage-comment-action-data)
 ![Python](https://img.shields.io/badge/python-3.14-blue.svg)
@@ -10,8 +9,6 @@
 ![Docker](https://img.shields.io/badge/docker-compose-blue.svg)
 ![Celery](https://img.shields.io/badge/celery-5.7-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
-
-## 📝 О проекте
 
 ## 📝 О проекте
 
